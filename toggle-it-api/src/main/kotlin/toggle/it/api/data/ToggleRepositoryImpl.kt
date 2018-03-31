@@ -1,7 +1,6 @@
 package toggle.it.api.data
 
 import toggle.it.api.domain.Toggle
-import java.util.concurrent.atomic.AtomicInteger
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SchemaUtils.create
@@ -14,22 +13,24 @@ object Toggles : Table(){
 }
 
 class ToggleRepositoryImpl : ToggleRepository {
+
     init {
-        var connection = Database.connect("jdbc:postgresql://localhost:5432/postgres", driver = "org.postgresql")
+        Database.connect("jdbc:postgresql://127.0.0.1:5432/postgres", driver = "org.postgresql.Driver", user = "postgres", password = "mysecretpassword")
 
         transaction {
             create (Toggles)
         }
     }
 
-    private val toggles = hashMapOf(
-            0 to Toggle(name = "toggle 1", active = true, id = 1),
-            1 to Toggle(name = "toggle 2", active = false, id = 2)
-    )
-
-    var lastId: AtomicInteger = AtomicInteger(toggles.size)
-
     override fun getToggles(): List<Toggle> {
-        return toggles.values.toList()
+        val toggles: MutableList<Toggle> =  mutableListOf()
+
+        transaction {
+            for(toggle in Toggles.selectAll()){
+                toggles.add(Toggle(id = toggle[Toggles.id], name = toggle[Toggles.name], active = toggle[Toggles.active]))
+            }
+        }
+
+        return toggles
     }
 }
