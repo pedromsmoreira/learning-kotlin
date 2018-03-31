@@ -17,7 +17,7 @@ class ToggleController(val repository: ToggleRepository) {
         get("/toggles/:id/tags", { req, res -> "get tags from toggle"})
 
         post("/toggles", { req, res -> "create toggle" })
-        patch("/toggles/:id/switch", { req, res -> "activate or deactivate toggle" })
+        put("/toggles/:id/switch", { req, res -> "activate or deactivate toggle" })
         delete("/toggles/:id", {req, res -> "delete toggle" })
     }
 
