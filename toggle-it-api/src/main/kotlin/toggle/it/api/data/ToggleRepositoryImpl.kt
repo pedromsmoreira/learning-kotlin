@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object Toggles : Table(){
     val id =  integer("id").autoIncrement().primaryKey()
-    val name = varchar("name", length = 50)
+    val name = varchar("name", length = 50).uniqueIndex()
     val active = bool("active")
 }
 
@@ -32,5 +32,64 @@ class ToggleRepositoryImpl : ToggleRepository {
         }
 
         return toggles
+    }
+
+    override fun getToggleByName(name: String): Toggle {
+        var toggle = Toggle()
+
+        transaction {
+            val result = Toggles.select {
+                Toggles.name eq name
+            }.first()
+
+            toggle = Toggle(id = result[Toggles.id], name = result[Toggles.name], active = result[Toggles.active])
+        }
+
+        return toggle
+    }
+
+    override fun getToggleById(id: Int): Toggle {
+        var toggle = Toggle()
+
+        transaction {
+            val result = Toggles.select {
+                Toggles.id eq id
+            }.first()
+
+            toggle = Toggle(id = result[Toggles.id], name = result[Toggles.name], active = result[Toggles.active])
+        }
+
+        return toggle
+    }
+
+    override fun insert(toggle: Toggle) {
+        transaction {
+            Toggles.insert {
+                it[Toggles.name] = toggle.name
+                it[Toggles.active] = toggle.active
+            }
+        }
+    }
+
+    override fun delete(id: Int) {
+        transaction {
+            Toggles.deleteWhere {
+                Toggles.id eq id
+            }
+        }
+    }
+
+    override fun update(id: Int) {
+        transaction {
+
+            val toggle = getToggleById(id)
+
+            Toggles.update({
+                Toggles.id.eq(id)
+            })
+            {
+                it[Toggles.active] = !toggle.active
+            }
+        }
     }
 }
